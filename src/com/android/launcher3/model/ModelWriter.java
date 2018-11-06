@@ -211,7 +211,6 @@ public class ModelWriter {
 
         item.id = Settings.call(cr, Settings.METHOD_NEW_ITEM_ID).getLong(Settings.EXTRA_VALUE);
         writer.put(Favorites._ID, item.id);
-
         final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
         mWorkerExecutor.execute(new Runnable() {
             public void run() {
@@ -223,6 +222,12 @@ public class ModelWriter {
                 }
             }
         });
+    }
+
+    public void deleteAllTable() {
+        Log.d("tag", "=====deleteAllTable=====");
+        ContentResolver resolver = mContext.getContentResolver();
+        resolver.delete(Favorites.CONTENT_URI, null, null);
     }
 
     /**

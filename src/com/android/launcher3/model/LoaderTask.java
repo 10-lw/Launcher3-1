@@ -90,6 +90,7 @@ public class LoaderTask implements Runnable {
     private final LauncherAppState mApp;
     private final AllAppsList mBgAllAppsList;
     private final BgDataModel mBgDataModel;
+    private final LoaderCallback mCallback;
 
     private final LoaderResults mResults;
 
@@ -103,12 +104,12 @@ public class LoaderTask implements Runnable {
     private boolean mStopped;
 
     public LoaderTask(LauncherAppState app, AllAppsList bgAllAppsList, BgDataModel dataModel,
-            LoaderResults results) {
+            LoaderResults results, LoaderCallback callback) {
         mApp = app;
         mBgAllAppsList = bgAllAppsList;
         mBgDataModel = dataModel;
         mResults = results;
-
+        mCallback = callback;
         mLauncherApps = LauncherAppsCompat.getInstance(mApp.getContext());
         mUserManager = UserManagerCompat.getInstance(mApp.getContext());
         mShortcutManager = DeepShortcutManager.getInstance(mApp.getContext());
@@ -201,6 +202,7 @@ public class LoaderTask implements Runnable {
             if (DEBUG_LOADERS) Log.d(TAG, "step 4.2: Binding widgets");
             mResults.bindWidgets();
 
+            mCallback.loadFinish(mBgAllAppsList.size());
             transaction.commit();
         } catch (CancellationException e) {
             // Loader stopped, ignore

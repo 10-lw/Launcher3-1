@@ -123,7 +123,7 @@ public class InvariantDeviceProfile {
     }
 
     @TargetApi(23)
-    InvariantDeviceProfile(Context context) {
+    public InvariantDeviceProfile(Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         DisplayMetrics dm = new DisplayMetrics();

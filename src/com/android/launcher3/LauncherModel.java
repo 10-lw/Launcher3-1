@@ -23,6 +23,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -37,12 +38,15 @@ import android.util.Pair;
 import com.android.launcher3.compat.LauncherAppsCompat;
 import com.android.launcher3.compat.PackageInstallerCompat.PackageInstallInfo;
 import com.android.launcher3.compat.UserManagerCompat;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dynamicui.ExtractionUtils;
 import com.android.launcher3.graphics.LauncherIcons;
 import com.android.launcher3.model.AddWorkspaceItemsTask;
 import com.android.launcher3.model.BgDataModel;
 import com.android.launcher3.model.CacheDataUpdatedTask;
 import com.android.launcher3.model.BaseModelUpdateTask;
+import com.android.launcher3.model.DesktopItemsHelper;
+import com.android.launcher3.model.LoaderCallback;
 import com.android.launcher3.model.LoaderResults;
 import com.android.launcher3.model.LoaderTask;
 import com.android.launcher3.model.ModelWriter;
@@ -509,7 +513,17 @@ public class LauncherModel extends BroadcastReceiver
     public void startLoaderForResults(LoaderResults results) {
         synchronized (mLock) {
             stopLoader();
-            mLoaderTask = new LoaderTask(mApp, mBgAllAppsList, sBgDataModel, results);
+            mLoaderTask = new LoaderTask(mApp, mBgAllAppsList, sBgDataModel, results, new LoaderCallback() {
+                @Override
+                public void loadFinish(int size) {
+                    SharedPreferences sp = Utilities.getPrefs(mApp.getContext());
+                    if (sp.getBoolean("isFirst",true) && FeatureFlags.FORCE_SHOWN_ON_DESKTOP) {
+                        DesktopItemsHelper.addScreenAndAddItem(mApp.getContext(), getWriter(false), size, mBgAllAppsList);
+                        sp.edit().putBoolean("isFirst", false).apply();
+                        forceReload();
+                    }
+                }
+            });
             runOnWorkerThread(mLoaderTask);
         }
     }

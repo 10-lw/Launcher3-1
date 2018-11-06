@@ -1,0 +1,4 @@
+{
+  "confirm_apps_on_launcher_bottom": ["com.onezero.fileexplorer", "org.chromium.chrome.browser", "com.android.settings"],
+  "do_not_show_apps":["com.android.inputmethod.latin", "com.sohu.inputmethod.sogou"]
+}
