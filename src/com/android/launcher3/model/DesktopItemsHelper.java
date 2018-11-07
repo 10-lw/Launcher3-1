@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.android.launcher3.AllAppsList;
 import com.android.launcher3.AppInfo;
@@ -64,16 +63,16 @@ public class DesktopItemsHelper {
     }
 
     private static void addItemsToScreens() {
+        // insert screen db
+
         DeviceConfig instance = DeviceConfig.getInstance(mContext);
         List<String> bottomAppsConfigs = instance.getBottomAppsConfigs();
-        int screemSize = numColumns * numRows;
         int total = mBgAllAppsList.size();
-
         int count = 0;
+        int screenNum = 0;
+        int unoccupy = 2;
         int y = 1;
-
-        // insert screen db
-        Uri uri = LauncherSettings.WorkspaceScreens.CONTENT_URI;
+        insertScreenNumDb(screenNum);
 
         //insert shortcut info db
         for (int i = 0; i < total; i++) {
@@ -81,32 +80,33 @@ public class DesktopItemsHelper {
             ShortcutInfo shortcutInfo = new ShortcutInfo(info);
             String packageName = info.componentName.getPackageName();
             boolean inHotseat = bottomAppsConfigs.contains(packageName);
-
-
             if (inHotseat) {
                 continue;
             }
-
-            int firstScreenSize = (numRows - 2) * numColumns;
-            int screenNum = 0;
+            int firstScreenSize = (numRows - unoccupy) * numColumns;
+            int cellX = count % numColumns;
+            if (count % numColumns == 0) {
+                y++;
+            }
             if (count < firstScreenSize) {
-                int cellX = count % numColumns;
-                if (count % numColumns == 0) {
-                    y++;
-                }
                 mWriter.addItemToDatabase(shortcutInfo, LauncherSettings.Favorites.CONTAINER_DESKTOP, 0, cellX, y);
             } else {
-                if ((count - firstScreenSize) % screemSize == 0) {
+                if ((count + unoccupy * numColumns) % (numColumns * numRows) == 0) {
                     screenNum++;
-                    ContentValues v = new ContentValues();
-                    v.put(LauncherSettings.WorkspaceScreens._ID, screenNum);
-                    v.put(LauncherSettings.WorkspaceScreens.SCREEN_RANK, screenNum);
-                    cr.insert(uri, v);
+                    insertScreenNumDb(screenNum);
                 }
-                mWriter.addItemToDatabase(shortcutInfo, -100, screenNum, count % numColumns, y);
+                mWriter.addItemToDatabase(shortcutInfo, LauncherSettings.Favorites.CONTAINER_DESKTOP, screenNum, count % numColumns, (y - numRows * screenNum));
             }
             count++;
         }
+    }
+
+    private static void insertScreenNumDb(int screenNum) {
+        Uri uri = LauncherSettings.WorkspaceScreens.CONTENT_URI;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(LauncherSettings.WorkspaceScreens._ID, screenNum);
+        contentValues.put(LauncherSettings.WorkspaceScreens.SCREEN_RANK, screenNum);
+        cr.insert(uri, contentValues);
     }
 
 }

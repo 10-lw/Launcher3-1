@@ -228,6 +228,7 @@ public class ModelWriter {
         Log.d("tag", "=====deleteAllTable=====");
         ContentResolver resolver = mContext.getContentResolver();
         resolver.delete(Favorites.CONTENT_URI, null, null);
+        resolver.delete(LauncherSettings.WorkspaceScreens.CONTENT_URI, null, null);
     }
 
     /**
